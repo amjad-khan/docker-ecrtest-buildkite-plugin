@@ -1,0 +1,6 @@
+name: ecr-test
+description: "Testing"
+author: "test"
+public: true
+repository: "https://github.com/amjad-khan/docker-ecrtest-buildkite-plugin.git"
+requirements: []
