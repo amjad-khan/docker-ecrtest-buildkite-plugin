@@ -170,7 +170,7 @@ push_tags() {
     echo "Logging in to ECR, region: ${region}"
     ecr_login "$region" "$account_id"
 
-    image="$(get_ecr_url "${BUILDKITE_PLUGIN_DOCKER_ECR_PUBLISH_ECR_NAME}" "${account_id}" "${region}")"
+    image="$(get_ecr_url "${BUILDKITE_PLUGIN_DOCKER_ECRTEST_ECR_NAME}" "${account_id}" "${region}")"
 
     for tag in "${tags[@]}"; do
       echo "Tag: '${tag}'"
@@ -204,23 +204,23 @@ ecr_login() {
     --password-stdin "${account_id}".dkr.ecr."${region}".amazonaws.com
 }
 
-if [[ -z ${BUILDKITE_PLUGIN_DOCKER_ECR_PUBLISH_ECR_NAME:-} ]]; then
+if [[ -z ${BUILDKITE_PLUGIN_DOCKER_ECRTEST_ECR_NAME:-} ]]; then
   echo "'ecr-name' property is required"
   exit 1
 fi
 
 echo '--- Reading plugin parameters'
 
-dockerfile="${BUILDKITE_PLUGIN_DOCKER_ECR_PUBLISH_DOCKERFILE:-Dockerfile}"
-build_context="${BUILDKITE_PLUGIN_DOCKER_ECR_PUBLISH_BUILD_CONTEXT:-.}"
-target="${BUILDKITE_PLUGIN_DOCKER_ECR_PUBLISH_TARGET:-}"
+dockerfile="${BUILDKITE_PLUGIN_DOCKER_ECRTEST_DOCKERFILE:-Dockerfile}"
+build_context="${BUILDKITE_PLUGIN_DOCKER_ECRTEST_BUILD_CONTEXT:-.}"
+target="${BUILDKITE_PLUGIN_DOCKER_ECRTEST_TARGET:-}"
 
 # by default disable buildkit
 enable_buildkit=0
 build_args=()
 caches_from=()
 tags=("${BUILDKITE_BUILD_NUMBER}")
-local_tag="${BUILDKITE_PLUGIN_DOCKER_ECR_PUBLISH_ECR_NAME}:${BUILDKITE_BUILD_NUMBER}"
+local_tag="${BUILDKITE_PLUGIN_DOCKER_ECRTEST_ECR_NAME}:${BUILDKITE_BUILD_NUMBER}"
 
 regions=()
 read_build_driver
@@ -231,7 +231,7 @@ if [[ ${BUILDKITE_BRANCH} == "${BUILDKITE_PIPELINE_DEFAULT_BRANCH}" ]]; then
   read_build_args 'DEFAULT_ARGS'
   read_tags 'DEFAULT_TAGS'
   # Do not add the latest tag if pipeline has requested not to
-  if [[ "${BUILDKITE_PLUGIN_DOCKER_ECR_PUBLISH_ADD_LATEST_TAG:-true}" =~ ^(true|on|1)$ ]] ; then
+  if [[ "${BUILDKITE_PLUGIN_DOCKER_ECRTEST_ADD_LATEST_TAG:-true}" =~ ^(true|on|1)$ ]] ; then
       tags+=('latest')
   fi
 else
@@ -254,8 +254,8 @@ fi
 
 read_regions
 
-if [[ -n ${BUILDKITE_PLUGIN_DOCKER_ECR_PUBLISH_ACCOUNT_ID:-} ]]; then
-  account_id="${BUILDKITE_PLUGIN_DOCKER_ECR_PUBLISH_ACCOUNT_ID}"
+if [[ -n ${BUILDKITE_PLUGIN_DOCKER_ECRTEST_ACCOUNT_ID:-} ]]; then
+  account_id="${BUILDKITE_PLUGIN_DOCKER_ECRTEST_ACCOUNT_ID}"
 else
   account_id="$(aws sts get-caller-identity --output text | cut -f1)"
 fi
@@ -263,8 +263,8 @@ fi
 read_caches_from
 
 echo '--- Building Docker image'
-if [[ -n ${BUILDKITE_PLUGIN_DOCKER_ECR_PUBLISH_ADDITIONAL_BUILD_ARGS:-} ]]; then
-  echo "Additional build args: ${BUILDKITE_PLUGIN_DOCKER_ECR_PUBLISH_ADDITIONAL_BUILD_ARGS}"
+if [[ -n ${BUILDKITE_PLUGIN_DOCKER_ECRTEST_ADDITIONAL_BUILD_ARGS:-} ]]; then
+  echo "Additional build args: ${BUILDKITE_PLUGIN_DOCKER_ECRTEST_ADDITIONAL_BUILD_ARGS}"
 fi
 echo "Buildkit:" ${enable_buildkit}
 echo "Build args:" ${build_args[@]+"${build_args[@]}"}
@@ -276,13 +276,13 @@ DOCKER_BUILDKIT=${enable_buildkit} \
   docker build \
   --file "${dockerfile}" \
   --tag "${local_tag}" \
-  ${BUILDKITE_PLUGIN_DOCKER_ECR_PUBLISH_ADDITIONAL_BUILD_ARGS:-} \
+  ${BUILDKITE_PLUGIN_DOCKER_ECRTEST_ADDITIONAL_BUILD_ARGS:-} \
   ${build_args[@]+"${build_args[@]}"} \
   ${caches_from[@]+"${caches_from[@]}"} \
   ${target_arg} \
   "${build_context}"
 
-save_digest_as_metadata="${BUILDKITE_PLUGIN_DOCKER_ECR_PUBLISH_SAVE_DIGEST_AS_METADATA:-}"
+save_digest_as_metadata="${BUILDKITE_PLUGIN_DOCKER_ECRTEST_SAVE_DIGEST_AS_METADATA:-}"
 if [[ -n ${save_digest_as_metadata} ]]; then
   echo "--- Saving Docker image digest to Buildkite metadata: ${save_digest_as_metadata}"
   image_digest="$(docker images --no-trunc --quiet "${image}:latest")"
