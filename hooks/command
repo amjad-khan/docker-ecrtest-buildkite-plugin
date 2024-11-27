@@ -204,9 +204,6 @@ ecr_login() {
     --password-stdin "${account_id}".dkr.ecr."${region}".amazonaws.com
 }
 
-echo "NEXT_VER: $NEXT_VER"
-exit 0
-
 if [[ -z ${BUILDKITE_PLUGIN_DOCKER_ECR_PUBLISH_ECR_NAME:-} ]]; then
   echo "'ecr-name' property is required"
   exit 1
@@ -240,6 +237,13 @@ if [[ ${BUILDKITE_BRANCH} == "${BUILDKITE_PIPELINE_DEFAULT_BRANCH}" ]]; then
 else
   read_build_args 'BRANCH_ARGS'
   read_tags 'BRANCH_TAGS'
+fi
+
+# Add $NEXT_VER to the tags array
+if [[ -n ${NEXT_VER:-} ]]; then
+  tags+=("${NEXT_VER}")
+else
+  echo "NEXT_VER is not set. Skipping version tag."
 fi
 
 # set target arg if target was specified
