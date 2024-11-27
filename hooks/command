@@ -116,7 +116,11 @@ read_tags() {
   local property="${1}"
 
   if read_list_property "${property}"; then
-    tags+=("${result[@]}")
+    for tag in "${result[@]}"; do
+      # Dynamically evaluate and resolve any environment variables in the tag
+      resolved_tag=$(eval echo "${tag}")
+      tags+=("${resolved_tag}")
+    done
   fi
 }
 
@@ -240,11 +244,11 @@ else
 fi
 
 # Add $NEXT_VER to the tags array
-if [[ -n ${NEXT_VER:-} ]]; then
-  tags+=("${NEXT_VER}")
-else
-  echo "NEXT_VER is not set. Skipping version tag."
-fi
+#if [[ -n ${NEXT_VER:-} ]]; then
+#  tags+=("${NEXT_VER}")
+#else
+#  echo "NEXT_VER is not set. Skipping version tag."
+#fi
 
 # set target arg if target was specified
 target_arg=""
