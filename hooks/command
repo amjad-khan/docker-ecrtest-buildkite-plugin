@@ -115,10 +115,16 @@ read_caches_from() {
 read_tags() {
   local property="${1}"
 
-  if read_list_property "${property}"; then
+   if read_list_property "${property}"; then
     for tag in "${result[@]}"; do
-      # Dynamically evaluate and resolve any environment variables in the tag
-      resolved_tag=$(eval echo "${tag}")
+      # Check if the tag is an environment variable name
+      if [[ -n ${!tag:-} ]]; then
+        resolved_tag="${!tag}"  # Expand to the value of the environment variable
+      else
+        resolved_tag="${tag}"  # Use the tag as-is
+      fi
+
+      # Append the resolved or original tag to the tags array
       tags+=("${resolved_tag}")
     done
   fi
