@@ -1,9 +1,0 @@
-#!/bin/bash
-
-# Enable strict error handling
-set -euo pipefail
-
-echo "This is a ECR Test Plugin"
-echo "NEXT_VER: $NEXT_VER"
-echo "{NEXT_VER}: ${NEXT_VER}"
-echo "NEXT_VER: $$NEXT_VER"
